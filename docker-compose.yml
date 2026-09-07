@@ -1,18 +1,20 @@
 services:
   backend:
-    build: ./backend
-    container_name: devnotes_backend
+    build: ./backend #Construa um container procurando Dockerfile dentro dessa pasta.
+    container_name: devnotes_backend #Nome do container.
     ports:
-      - "8000:8000"
+      - "8000:8000" #Estará rodando no http://localhost:8000
     volumes:
-      - ./backend:/app
-    restart: always
+      - ./backend:/app #Conecta a pasta para o container. Serve de forma automática.
+    restart: always #Se parar, reinicie ele sempre.
 
   frontend:
-    build: ./frontend
-    container_name: devnotes_frontend
+    build: ./frontend #Construa um container procurando Dockerfile dentro dessa pasta.
+    container_name: devnotes_frontend #Nome do container.
     ports:
-      - "3000:80"
+      - "3000:80" #Estará rodando no http://localhost:3000, mas no container estará no 80, pois é servido pelo Nginx.
     depends_on:
-      - backend
-    restart: always
+      - backend #Frontend depende do backend. Primeiro backend, depois frontend.
+    restart: always #Se parar, reinicie ele sempre.
+
+#É a ferramenta que se usa para definir e executar aplicativos Docker com vários contêineres ao mesmo tempo.
