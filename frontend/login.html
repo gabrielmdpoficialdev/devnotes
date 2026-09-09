@@ -4,32 +4,44 @@
     <meta charset="UTF-8">
     <title>DevNotes - Entrar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+<!-- É um framework de CSS baseado em utilitários (utility-first). Em vez de escrever classes semânticas personalizadas e escrever regras em ambientes sepadados, o mesmo fornece classes de baixo nível pré-existentes, que se aplica diretamente no HTML para montar o design dividido entre elementos-->
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+    <!-- CARD PRINCIPAL-->
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-xl shadow-xl space-y-6">
+        <!-- TEXTO/TÍTULO-->
         <h1 class="text-2xl font-black text-center bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">DevNotes Login</h1>
+        <!-- BLOCO DE ENTRADAS E BOTÃO CLICÁVEL-->
         <div class="space-y-4">
             <input type="email" id="loginEmail" placeholder="Seu e-mail" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 text-sm">
             <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 text-sm">
             <button onclick="login()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg transition duration-200 text-sm">Entrar</button>
         </div>
+        <!-- PARÁGRAFO -->
         <p class="text-center text-xs text-slate-400">Não tem uma conta? <a href="/register.html" class="text-emerald-400 hover:underline">Cadastre-se</a></p>
     </div>
+    <!-- Função assíncrona ao clicar em registrar/cadastrar-->
+    <!-- Qualquer seção de script é para informar a comunicação com o backend-->
     <script>
         async function login() {
+            // Capturar os  digitados nos inputs de email e senha através do ID.
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            //REQUISIÇÃO HTTP DO TIPO POST PARA A API LOGIN.
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                //Converte os dados para uma string JSON no corpo da requisição
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
             if (res.ok) {
                 localStorage.setItem('token', data.access_token);
                 window.location.href = '/index.html';
+                //Acessa o index.html quando a resposta JSON é encontrada e efetivada.
             } else {
                 alert(data.detail || 'Erro ao entrar');
+                //Exibe a mensagem de retorno padronizada;
             }
         }
     </script>

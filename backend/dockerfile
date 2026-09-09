@@ -1,12 +1,20 @@
+#Usa uma noção oficial do Python como base.
 FROM python:3.10-slim
 
+#Define o diretório de trabalho principal dentro do container.
 WORKDIR /app
 
-COPY requirements.txt .
+#Copia o arquivo das dependências para aproveitar o cache do Docker.
+COPY requirements.txt . 
+
+#Instala as dependência sem o cache para economizar os espaços.
 RUN pip install --no-cache-dir -r requirements.txt
 
+#Copia o resto do código para dentro do container.
 COPY . .
 
+#A porta que será exposta.
 EXPOSE 8000
 
+#Comando padrão para inicializar-se no servidor Uvicorn.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

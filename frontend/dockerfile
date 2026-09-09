@@ -1,6 +1,13 @@
+# Imagem base: Nginx rodando no Alpine Linux
 FROM nginx:alpine
+#Copia o arquivo 'index.html' local para o diretório padrão onde o Nginx serve as páginas web públicas no container
 COPY index.html /usr/share/nginx/html/index.html
+# Copia o arquivo 'login.html' local para o diretório público do servidor web do Nginx
 COPY login.html /usr/share/nginx/html/login.html
+# Copia o arquivo 'register.html' local (a tela de cadastro que vimos anteriormente) para o diretório público do Nginx
 COPY register.html /usr/share/nginx/html/register.html
+# Copia o arquivo de configuração personalizado do Nginx para o diretório de configurações ativas do servidor
 COPY default.conf /etc/nginx/conf.d/default.conf
+
+#Informa o Docker que as requisições ainda serão nas portas 80 (tráfego HTTP)
 EXPOSE 80
