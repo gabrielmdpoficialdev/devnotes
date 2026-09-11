@@ -1,59 +1,80 @@
+<!--Página principal, sempre busca o index.html-->
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <title>DevNotes - Bloco de Notas</title>
     <script src="https://cdn.tailwindcss.com"></script>
+<!-- É um framework de CSS baseado em utilitários (utility-first). Em vez de escrever classes semânticas personalizadas e escrever regras em ambientes separados, o mesmo fornece classes de baixo nível pré-existentes, que se aplica diretamente no HTML para montar o design dividido entre elementos-->
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-6">
+    <!-- Container principal centralizado com espaçamento vertical -->
     <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Cabeçalho da aplicação contendo título, descrição e botão de logout -->
         <header class="border-b border-slate-800 pb-4 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-black bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent">DevNotes</h1>
                 <p class="text-slate-400 text-sm">Gerenciador inteligente de anotações técnicas.</p>
             </div>
+            <!-- Botão para encerrar a sessão do usuário -->
             <button onclick="logout()" class="text-xs text-rose-400 hover:text-rose-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">Sair</button>
         </header>
 
+        <!-- Formulário para criação de uma nova nota -->
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-xl space-y-4">
             <h2 class="text-lg font-bold text-slate-200">Criar Nova Nota</h2>
+            <!-- Grid responsivo para os campos de Título e Categoria -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" id="noteTitle" placeholder="Título da Nota" class="px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm">
                 <input type="text" id="noteCategory" placeholder="Categoria" class="px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm">
             </div>
+            <!-- Campo de texto grande para o corpo/conteúdo da nota -->
             <textarea id="noteContent" rows="3" placeholder="Escreva o conteúdo..." class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm"></textarea>
+            <!-- Ação de envio do formulário -->
             <button onclick="createNote()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg text-sm">Salvar Nota</button>
         </div>
 
+        <!-- Seção de listagem dinâmica das notas salvas -->
         <div class="space-y-4">
             <h2 class="text-lg font-bold text-slate-200">Suas Notas</h2>
+            <!-- Grid onde os cards das notas serão injetados via JavaScript -->
             <div id="notesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
     </div>
 
     <script>
+        // Recupera o token de autenticação armazenado localmente no navegador
         const token = localStorage.getItem('token');
+        // Redireciona para a página de login caso o usuário não esteja autenticado
         if (!token) window.location.href = '/login.html';
 
+        // Função responsável por limpar as credenciais e redirecionar para o login
         function logout() {
             localStorage.removeItem('token');
             window.location.href = '/login.html';
         }
 
+        // Função assíncrona para buscar as notas cadastradas na API
         async function fetchNotes() {
             const res = await fetch('/api/notes', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            // Se o token expirar ou for inválido, força o logout
             if (res.status === 401) return logout();
+            
             const notes = await res.json();
             const grid = document.getElementById('notesGrid');
             grid.innerHTML = '';
 
+            // Exibe mensagem informativa se nenhuma nota for encontrada
             if (notes.length === 0) {
                 grid.innerHTML = '<p class="text-slate-500 text-sm col-span-2">Nenhuma nota cadastrada.</p>';
                 return;
             }
 
+            // Percorre o array de notas e gera dinamicamente os cards na tela
             notes.forEach(note => {
                 grid.innerHTML += `
                     <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between space-y-3">
@@ -70,13 +91,17 @@
             });
         }
 
+        // Função assíncrona para validar e enviar uma nova nota para o backend
         async function createNote() {
             const title = document.getElementById('noteTitle').value;
             const category = document.getElementById('noteCategory').value;
+            // Validação de fallback mantida do código original
             const content = document.getElementById('noteContent5')?.value || document.getElementById('noteContent').value;
 
+            // Validação básica para garantir que título e conteúdo foram preenchidos
             if (!title || !content) return alert('Preencha título e conteúdo.');
 
+            // Requisição POST para criar a nota na API
             await fetch('/api/notes', {
                 method: 'POST',
                 headers: { 
@@ -86,20 +111,25 @@
                 body: JSON.stringify({ title, category: category || 'Geral', content })
             });
 
+            // Limpa os campos do formulário após o cadastro bem-sucedido
             document.getElementById('noteTitle').value = '';
             document.getElementById('noteCategory').value = '';
             document.getElementById('noteContent').value = '';
+            // Atualiza a listagem de notas na tela
             fetchNotes();
         }
 
+        // Função assíncrona para deletar uma nota específica pelo seu ID
         async function deleteNote(id) {
             await fetch(`/api/notes/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            // Atualiza a listagem após a exclusão
             fetchNotes();
         }
 
+        // Executa a busca inicial de notas assim que o script é carregado
         fetchNotes();
     </script>
 </body>

@@ -7,15 +7,19 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-SECRET_KEY = "sua_chave_secreta_super_segura_aqui"
+# Configurações globais de segurança para criptografia e emissão de tokens JWT
+SECRET_KEY = "chavesecreta"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
+# Contexto para hash de senhas utilizando bcrypt e esquema de autenticação OAuth2
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
+# Inicialização da aplicação FastAPI
 app = FastAPI(title="DevNotes Auth API", version="2.0.0")
 
+# Configuração de CORS para permitir requisições de qualquer origem
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,6 +29,7 @@ app.add_middleware(
 )
 
 
+# Evento executado na inicialização da API para configurar/criar as tabelas do banco de dados
 @app.on_event("startup")
 def startup_event():
   from database import init_db
@@ -32,6 +37,7 @@ def startup_event():
   init_db()
 
 
+# Função geradora de sessão do banco de dados (Injeção de dependência)
 def get_db():
   from database import SessionLocal
 
@@ -42,6 +48,7 @@ def get_db():
     db.close()
 
 
+# Schemas Pydantic para validação estruturada dos dados de entrada
 class UserCreate(BaseModel):
   email: str
   password: str
@@ -58,6 +65,7 @@ class NoteCreate(BaseModel):
   content: str
 
 
+# Funções utilitárias para verificação de senhas, hash e criação de tokens
 def verify_password(plain_password, hashed_password):
   return pwd_context.verify(plain_password, hashed_password)
 
@@ -76,6 +84,7 @@ def create_access_token(data: dict):
   return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+# Função de dependência para validar o token JWT e recuperar o usuário atual autenticado
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
@@ -99,6 +108,7 @@ def get_current_user(
   return user
 
 
+# Endpoint responsável pelo registro de novos usuários
 @app.post("/api/register", status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
   from database import User
@@ -114,6 +124,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
   return {"message": "Usuário criado com sucesso"}
 
 
+# Endpoint de autenticação para validar credenciais e retornar o token de acesso
 @app.post("/api/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
   from database import User
@@ -126,6 +137,7 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
   return {"access_token": access_token, "token_type": "bearer"}
 
 
+# Endpoint para listar todas as notas vinculadas ao usuário autenticado
 @app.get("/api/notes")
 def list_notes(
     db: Session = Depends(get_db), current_user=Depends(get_current_user)
@@ -133,6 +145,7 @@ def list_notes(
   return current_user.notes
 
 
+# Endpoint para criar uma nova nota, aplicando contagem automática de palavras no conteúdo
 @app.post("/api/notes", status_code=status.HTTP_201_CREATED)
 def create_note(
     note: NoteCreate,
@@ -158,6 +171,7 @@ def create_note(
   return db_note
 
 
+# Endpoint para excluir uma nota específica por ID, garantindo que pertença ao usuário
 @app.delete("/api/notes/{note_id}")
 def delete_note(
     note_id: int,
